@@ -30,7 +30,13 @@ jobs:
             unzip -o "$ZIP_FILE"
           fi
 
-          # Ensure vite uses relative asset paths for native WebView
+          # Remove virtual:pwa-register if present in main.tsx
+          if [ -f src/main.tsx ]; then
+            sed -i '/virtual:pwa-register/d' src/main.tsx
+            sed -i '/registerSW/d' src/main.tsx
+          fi
+
+          # Clean vite configuration for mobile webview
           cat << 'EOF' > vite.config.ts
           import { defineConfig } from 'vite';
           import react from '@vitejs/plugin-react';
@@ -48,7 +54,7 @@ jobs:
 
       - name: Build Web App
         run: |
-          npm run build || npx vite build
+          npx vite build
 
       - name: Initialize Capacitor & Sync Native Project
         run: |
