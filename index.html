@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script>
+      (function() {
+        // Intercept Vite HMR WebSocket errors in environments where HMR is disabled
+        function isViteHmrNoise(str) {
+          if (!str) return false;
+          var s = String(str);
+          return (
+            s.includes('WebSocket') ||
+            s.includes('closed without opened') ||
+            s.includes('[vite]') ||
+            s.includes('ws://') ||
+            s.includes('wss://')
+          );
+        }
+
+        window.addEventListener('error', function(event) {
+          var msg = event.message || (event.error && event.error.message) || String(event);
+          if (isViteHmrNoise(msg)) {
+            event.preventDefault();
+            event.stopImmediatePropagation?.();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(event) {
+          var reasonMsg = event.reason && (event.reason.message || event.reason.toString?.());
+          if (isViteHmrNoise(reasonMsg)) {
+            event.preventDefault();
+            event.stopImmediatePropagation?.();
+            return true;
+          }
+        }, true);
+
+        var _origError = console.error;
+        console.error = function() {
+          var args = Array.prototype.slice.call(arguments);
+          var joined = args.map(function(a) { return String(a && a.message ? a.message : a); }).join(' ');
+          if (isViteHmrNoise(joined)) {
+            return;
+          }
+          return _origError.apply(console, arguments);
+        };
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>medtake - Medicine Reminder & Caregiver Portal</title>
+    <meta name="description" content="Smart medicine reminder app with fullscreen alarms, tablet photos, audio ringtones, spoken reminders in 22 Indian languages, and guardian SMS alerts." />
+    <meta name="author" content="Tammy TM (Tanmay TM)" />
+    <meta name="copyright" content="© 2026 Tammy TM. All Rights Reserved." />
+    <meta property="og:title" content="medtake - Medicine Reminder & Caregiver Portal" />
+    <meta property="og:description" content="Smart medicine reminder app with fullscreen alarms, tablet photos, audio ringtones, spoken reminders in 22 Indian languages, and guardian SMS alerts." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#059669" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="medtake" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
+  </head>
+  <body class="bg-slate-50 text-slate-900 antialiased min-h-screen selection:bg-emerald-500 selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
