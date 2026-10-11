@@ -30,11 +30,12 @@ jobs:
             unzip -o "$ZIP_FILE"
           fi
 
-          # Clean and valid React entrypoint (replaces broken PWA code)
+          # CSS ಮತ್ತು ಅಸಲಿ ಡಿಸೈನ್ ಲೋಡ್ ಮಾಡಲು
           cat << 'EOF' > src/main.tsx
           import React from 'react';
           import ReactDOM from 'react-dom/client';
           import App from './App';
+          import './index.css';
 
           ReactDOM.createRoot(document.getElementById('root')!).render(
             <React.StrictMode>
@@ -43,7 +44,7 @@ jobs:
           );
           EOF
 
-          # Standard Vite config for mobile WebView
+          # Vite configuration
           cat << 'EOF' > vite.config.ts
           import { defineConfig } from 'vite';
           import react from '@vitejs/plugin-react';
@@ -63,11 +64,20 @@ jobs:
         run: |
           npx vite build
 
-      - name: Initialize Capacitor & Sync Native Project
+      - name: Initialize Capacitor & Set App Icon
         run: |
           npx cap init MedTake com.medtake.app --web-dir dist
           npx cap add android
           npx cap sync android
+
+          # ನಿಮ್ಮ pwa-192x192.png ಇಮೇಜ್ ಅನ್ನು ಆಂಡ್ರಾಯ್ಡ್ ಆಪ್ ಲೋಗೋ ಆಗಿ ಸೆಟ್ ಮಾಡುವುದು
+          if [ -f pwa-192x192.png ]; then
+            for dir in android/app/src/main/res/mipmap-*; do
+              cp pwa-192x192.png "$dir/ic_launcher.png"
+              cp pwa-192x192.png "$dir/ic_launcher_round.png"
+              cp pwa-192x192.png "$dir/ic_launcher_foreground.png" 2>/dev/null || true
+            done
+          fi
 
       - name: Build Debug APK
         run: |
