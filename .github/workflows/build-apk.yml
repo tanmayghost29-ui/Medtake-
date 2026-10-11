@@ -24,36 +24,38 @@ jobs:
 
       - name: Setup Project Structure
         run: |
-          if [ -f ai_studio_code.txt ] && [ ! -f package.json ]; then
-            cp ai_studio_code.txt package.json
-          fi
+          cp ai_studio_code.txt package.json
           mkdir -p src
           if [ -f "ai_studio_code (1).ts" ]; then
             cp "ai_studio_code (1).ts" src/main.tsx
           elif [ -f "ai_studio_code.ts" ]; then
             cp "ai_studio_code.ts" src/main.tsx
           fi
+          # Create Vite config with relative base path so Android WebView loads assets
+          cat << 'EOF' > vite.config.ts
+          import { defineConfig } from 'vite';
+          import react from '@vitejs/plugin-react';
+
+          export default defineConfig({
+            plugins: [react()],
+            base: './',
+          });
+          EOF
 
       - name: Install Dependencies
         run: |
           npm install --legacy-peer-deps
-          npm install -g @capacitor/cli
+          npm install --save-dev @capacitor/cli
 
       - name: Build Web App
         run: |
-          npm run build || npx vite build || true
-          if [ ! -d "dist" ]; then
-            mkdir -p dist
-            cp index.html dist/
-            cp index.css dist/ 2>/dev/null || true
-            cp *.png dist/ 2>/dev/null || true
-          fi
+          npx vite build
 
       - name: Initialize Capacitor
         run: |
-          cap init MedTake com.medtake.app --web-dir dist
-          cap add android
-          cap sync android
+          npx cap init MedTake com.medtake.app --web-dir dist
+          npx cap add android
+          npx cap sync android
 
       - name: Build Debug APK
         run: |
