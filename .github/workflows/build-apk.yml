@@ -1,3 +1,4 @@
+
 name: Build Android APK
 
 on:
@@ -19,13 +20,13 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: 17
+          distribution: 'temurin'
+          java-version: 21
 
       - name: Install Dependencies
         run: |
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest
 
       - name: Prepare Web Assets
         run: |
@@ -38,13 +39,12 @@ jobs:
         run: |
           npx cap init MedTake com.medtake.app --web-dir www
           npx cap add android
-          npx cap sync android
 
       - name: Build Debug APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
