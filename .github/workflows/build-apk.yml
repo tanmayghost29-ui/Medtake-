@@ -22,16 +22,16 @@ jobs:
           distribution: 'temurin'
           java-version: 21
 
-      - name: Setup Project Structure
+      - name: Unpack Project Bundle
         run: |
-          cp ai_studio_code.txt package.json
-          mkdir -p src
-          if [ -f "ai_studio_code (1).ts" ]; then
-            cp "ai_studio_code (1).ts" src/main.tsx
-          elif [ -f "ai_studio_code.ts" ]; then
-            cp "ai_studio_code.ts" src/main.tsx
+          # Find and unzip uploaded project zip
+          ZIP_FILE=$(ls medtake*.zip 2>/dev/null | head -n 1)
+          if [ -n "$ZIP_FILE" ]; then
+            echo "Unzipping $ZIP_FILE..."
+            unzip -o "$ZIP_FILE"
           fi
-          # Create Vite config with relative base path so Android WebView loads assets
+
+          # Ensure vite uses relative asset paths for native WebView
           cat << 'EOF' > vite.config.ts
           import { defineConfig } from 'vite';
           import react from '@vitejs/plugin-react';
@@ -49,9 +49,9 @@ jobs:
 
       - name: Build Web App
         run: |
-          npx vite build
+          npm run build || npx vite build
 
-      - name: Initialize Capacitor
+      - name: Initialize Capacitor & Sync Native Project
         run: |
           npx cap init MedTake com.medtake.app --web-dir dist
           npx cap add android
