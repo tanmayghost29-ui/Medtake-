@@ -22,22 +22,41 @@ jobs:
           distribution: 'temurin'
           java-version: 21
 
+      - name: Setup Project Structure
+        run: |
+          # Ensure package.json is present
+          if [ -f ai_studio_code.txt ] && [ ! -f package.json ]; then
+            cp ai_studio_code.txt package.json
+          fi
+          # Ensure main React source file is in src/
+          mkdir -p src
+          if [ -f "ai_studio_code (1).ts" ]; then
+            cp "ai_studio_code (1).ts" src/main.tsx
+          elif [ -f "ai_studio_code.ts" ]; then
+            cp "ai_studio_code.ts" src/main.tsx
+          fi
+
       - name: Install Dependencies
         run: |
-          npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install --legacy-peer-deps
 
-      - name: Prepare Web Assets
+      - name: Build Web App with Vite
         run: |
-          mkdir -p www
-          cp index.html www/
-          cp index.css www/ 2>/dev/null || true
-          cp *.png www/ 2>/dev/null || true
+          # Build bundle into dist folder
+          npx vite build || npm run build || true
+          # Fallback: if dist not generated, prepare www manually
+          if [ ! -d "dist" ]; then
+            mkdir -p dist
+            cp index.html dist/
+            cp index.css dist/ 2>/dev/null || true
+            cp *.png dist/ 2>/dev/null || true
+          fi
 
       - name: Initialize Capacitor
         run: |
-          npx cap init MedTake com.medtake.app --web-dir www
+          npx cap init MedTake com.medtake.app --web-dir dist
           npx cap add android
+          npx cap sync android
 
       - name: Build Debug APK
         run: |
