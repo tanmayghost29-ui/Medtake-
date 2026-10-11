@@ -24,11 +24,9 @@ jobs:
 
       - name: Setup Project Structure
         run: |
-          # Ensure package.json is present
           if [ -f ai_studio_code.txt ] && [ ! -f package.json ]; then
             cp ai_studio_code.txt package.json
           fi
-          # Ensure main React source file is in src/
           mkdir -p src
           if [ -f "ai_studio_code (1).ts" ]; then
             cp "ai_studio_code (1).ts" src/main.tsx
@@ -39,12 +37,11 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install --legacy-peer-deps
+          npm install -g @capacitor/cli
 
-      - name: Build Web App with Vite
+      - name: Build Web App
         run: |
-          # Build bundle into dist folder
-          npx vite build || npm run build || true
-          # Fallback: if dist not generated, prepare www manually
+          npm run build || npx vite build || true
           if [ ! -d "dist" ]; then
             mkdir -p dist
             cp index.html dist/
@@ -54,9 +51,9 @@ jobs:
 
       - name: Initialize Capacitor
         run: |
-          npx cap init MedTake com.medtake.app --web-dir dist
-          npx cap add android
-          npx cap sync android
+          cap init MedTake com.medtake.app --web-dir dist
+          cap add android
+          cap sync android
 
       - name: Build Debug APK
         run: |
