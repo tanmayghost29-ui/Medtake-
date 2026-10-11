@@ -30,13 +30,20 @@ jobs:
             unzip -o "$ZIP_FILE"
           fi
 
-          # Remove virtual:pwa-register if present in main.tsx
-          if [ -f src/main.tsx ]; then
-            sed -i '/virtual:pwa-register/d' src/main.tsx
-            sed -i '/registerSW/d' src/main.tsx
-          fi
+          # Clean and valid React entrypoint (replaces broken PWA code)
+          cat << 'EOF' > src/main.tsx
+          import React from 'react';
+          import ReactDOM from 'react-dom/client';
+          import App from './App';
 
-          # Clean vite configuration for mobile webview
+          ReactDOM.createRoot(document.getElementById('root')!).render(
+            <React.StrictMode>
+              <App />
+            </React.StrictMode>
+          );
+          EOF
+
+          # Standard Vite config for mobile WebView
           cat << 'EOF' > vite.config.ts
           import { defineConfig } from 'vite';
           import react from '@vitejs/plugin-react';
