@@ -1,3 +1,4 @@
+
 name: Build Android APK
 
 on:
@@ -30,12 +31,16 @@ jobs:
             unzip -o "$ZIP_FILE"
           fi
 
-          # CSS ಲಿಂಕ್ ಮಾಡುವ ಸ್ವಚ್ಛ React ಎಂಟ್ರಿಪಾಯಿಂಟ್
+          # 1. Tailwind CSS CDN ಅನ್ನು index.html ಗೆ ಸೇರಿಸಿ (ಪೂರ್ಣ ಸ್ಟೈಲಿಂಗ್‌ಗಾಗಿ)
+          if [ -f index.html ]; then
+            sed -i 's|</head>|<script src="https://cdn.tailwindcss.com"></script></head>|' index.html
+          fi
+
+          # 2. ಕ್ಲೀನ್ React ಎಂಟ್ರಿಪಾಯಿಂಟ್
           cat << 'EOF' > src/main.tsx
           import React from 'react';
           import ReactDOM from 'react-dom/client';
           import App from './App';
-          import './index.css';
 
           ReactDOM.createRoot(document.getElementById('root')!).render(
             <React.StrictMode>
@@ -44,7 +49,7 @@ jobs:
           );
           EOF
 
-          # Vite configuration
+          # 3. ಮೊಬೈಲ್ WebView ಗಾಗಿ Vite config
           cat << 'EOF' > vite.config.ts
           import { defineConfig } from 'vite';
           import react from '@vitejs/plugin-react';
@@ -70,7 +75,7 @@ jobs:
           npx cap add android
           npx cap sync android
 
-          # Duplicate resources ಎರರ್ ಬರದಂತೆ ಹಳೆಯ XML ಐಕಾನ್‌ಗಳನ್ನು ತೆಗೆದು ನಿಮ್ಮ ಸ್ವಂತ ಲೋಗೋ ಹಾಕುವುದು
+          # ಲೋಗೋ ಸೆಟಪ್
           if [ -f pwa-192x192.png ]; then
             rm -rf android/app/src/main/res/mipmap-anydpi-v26
             for dir in android/app/src/main/res/mipmap-*; do
